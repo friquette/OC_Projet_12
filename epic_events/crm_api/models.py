@@ -1,13 +1,17 @@
 from django.db import models
+from django.contrib.auth.models import AbstractBaseUser
 from django.core.validators import RegexValidator
 
 PHONE_VALIDATOR = RegexValidator(r"^\+?1?\d{8,15}$")
 
 
-class Employee(models.AbstractBaseUser):
+class Employee(AbstractBaseUser):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
-    email = models.EmailField(max_length=100)
+    email = models.EmailField(max_length=100, unique=True)
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'email']
 
 
 class Assignee(models.Model):
@@ -45,12 +49,12 @@ class ClientAssignation(Assignee):
     medium = models.CharField(max_length=100)
 
 
-class Time(models.Model):
+class ManipulationDates(models.Model):
     date_created = models.DateTimeField(auto_now=True)
     date_updated = models.DateTimeField()
 
 
-class Client(models.Model, Time):
+class Client(ManipulationDates):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     email = models.EmailField(max_length=100)
@@ -69,15 +73,15 @@ class Client(models.Model, Time):
     job = models.CharField(max_length=100)
 
 
-class Contract(models.Model, Time):
+class Contract(ManipulationDates):
     is_signed = models.BooleanField()
     amount = models.FloatField()
     payment_due = models.DateTimeField()
-    client = models.ForeignKey('Client', on_delete=models.CASCADE)
+    client_fk = models.ForeignKey('Client', on_delete=models.CASCADE)
 
 
-class Event(models.Model, Time):
+class Event(ManipulationDates):
     attendees = models.IntegerField()
     event_date = models.DateTimeField()
     notes = models.TextField()
-    event = models.ForeignKey('Contract', on_delete=models.CASCADE)
+    event_fk = models.ForeignKey('Contract', on_delete=models.CASCADE)
