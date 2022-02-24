@@ -1,44 +1,29 @@
-from django.http import HttpResponse, JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from rest_framework.parsers import JSONParser
+from rest_framework import viewsets
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework.reverse import reverse
 
-from crm_api.models import Employee
-from crm_api.serializers import EmployeeSerializer
-
-
-@csrf_exempt
-def employee_list(request):
-    if request.method == 'GET':
-        employees = Employee.objects.all()
-        serializer = EmployeeSerializer(employees, many=True)
-        return JsonResponse(serializer.data, safe=False)
-
-    elif request.method == 'POST':
-        data = JSONParser().parse(request)
-        serializer = EmployeeSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(serializer.data, status=201)
-        return JsonResponse(serializer.errors, status=400)
+from crm_api.models import Employee, Client
+from crm_api.serializers import EmployeeSerializer, ClientSerializer
 
 
-@csrf_exempt
-def employee_detail(request, pk):
-    try:
-        employee = Employee.objects.get(pk=pk)
-    except Employee.DoesNotExist:
-        return HttpResponse(status=404)
+@api_view(['GET'])
+def api_root(request, format=None):
+    return Response({
+        'employee': reverse('employee-list', request=request, format=format),
+        'client': reverse('client-list', request=request, format=format)
+    })
 
-    if request.method == 'GET':
-        serializer = EmployeeSerializer(employee)
-        return JsonResponse(serializer.data)
-    elif request.method == 'PUT':
-        data = JSONParser().parse(request)
-        serializer = EmployeeSerializer(employee, data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(serializer.data)
-        return JsonResponse(serializer.errors, status=400)
-    elif request.method == 'DELETE':
-        employee.delete()
-        return HttpResponse(status=204)
+
+class EmployeeViewSet(viewsets.ModelViewSet):
+    """
+    This viewset automatically provides 'list', 'create', 'retrieve',
+    'update' and 'destroy' actions.
+    """
+    queryset = Employee.objects.all()
+    serializer_class = EmployeeSerializer
+
+
+class ClientViewSet(viewsets.ModelViewSet):
+    queryset = Client.objects.all()
+    serializer_class = ClientSerializer

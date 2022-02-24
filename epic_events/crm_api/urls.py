@@ -1,8 +1,13 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+
 from crm_api import views
 
 
+router = DefaultRouter()
+router.register(r'employee', views.EmployeeViewSet)
+router.register(r'client', views.ClientViewSet)
+
 urlpatterns = [
-    path('crm_api/', views.employee_list),
-    path('crm_api/<int:pk>/', views.employee_detail)
+    path('', include(router.urls)),
 ]
