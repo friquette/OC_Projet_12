@@ -22,9 +22,4 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     """
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
-
-    def get_permissions(self):
-        if self.request.method == 'POST':
-            self.permission_classes = (AllowAny,)
-
-        return super(EmployeeViewSet, self).get_permissions()
+    permission_classes = [AllowAny, ]
