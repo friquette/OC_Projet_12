@@ -1,12 +1,5 @@
 from rest_framework import serializers
-from crm_api.models import Employee, Client
-
-
-class EmployeeSerializer(serializers.ModelSerializer):
-    class Meta(object):
-        model = Employee
-        fields = ['id', 'first_name', 'last_name', 'email']
-        extra_kwargs = {'password': {'write_only': True}}
+from crm_api.models import Client
 
 
 class ClientSerializer(serializers.ModelSerializer):

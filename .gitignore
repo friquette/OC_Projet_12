@@ -1,3 +1,4 @@
 env
 steps.txt
 .vscode
+*.sqlite3

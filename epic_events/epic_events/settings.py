@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'crm_api'
+    'crm_api',
+    'employees'
 ]
 
 MIDDLEWARE = [
@@ -124,4 +125,4 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-AUTH_USER_MODEL = 'crm_api.Employee'
+AUTH_USER_MODEL = 'employees.Employee'
