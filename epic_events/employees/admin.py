@@ -5,6 +5,3 @@ from .models import Employee
 @admin.register(Employee)
 class AuthorAdmin(admin.ModelAdmin):
     pass
-
-
-# admin.site.register(Employee)

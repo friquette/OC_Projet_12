@@ -11,15 +11,18 @@ class Assignee(models.Model):
     employee = models.ForeignKey(
         Employee,
         on_delete=models.CASCADE,
-        related_name='employees'
+        related_name="%(app_label)s_%(class)s_related"
     )
+
+    class Meta:
+        abstract = True
 
 
 class EventAssignation(Assignee):
     event = models.ForeignKey(
         'Event',
         on_delete=models.CASCADE,
-        related_name='event'
+        related_name='event_assignation'
     )
 
 
@@ -27,7 +30,7 @@ class ContractAssignation(Assignee):
     contract = models.ForeignKey(
         'Contract',
         on_delete=models.CASCADE,
-        related_name='contract'
+        related_name='contract_assignation'
     )
 
 
@@ -35,18 +38,21 @@ class ClientAssignation(Assignee):
     client = models.ForeignKey(
         'Client',
         on_delete=models.CASCADE,
-        related_name='client'
+        related_name='client_assignation'
     )
     is_converted = models.BooleanField()
     medium = models.CharField(max_length=100)
 
 
-class ManipulationDates(models.Model):
+class DatedItem(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        abstract = True
 
-class Client(ManipulationDates):
+
+class Client(DatedItem):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     email = models.EmailField(max_length=100)
@@ -65,15 +71,23 @@ class Client(ManipulationDates):
     job = models.CharField(max_length=100)
 
 
-class Contract(ManipulationDates):
+class Contract(DatedItem):
     is_signed = models.BooleanField()
     amount = models.FloatField()
     payment_due = models.DateTimeField()
-    client_fk = models.ForeignKey('Client', on_delete=models.CASCADE)
+    client_fk = models.ForeignKey(
+        'Client',
+        on_delete=models.CASCADE,
+        related_name="client_contract"
+    )
 
 
-class Event(ManipulationDates):
+class Event(DatedItem):
     attendees = models.IntegerField()
     event_date = models.DateTimeField()
     notes = models.TextField()
-    event_fk = models.ForeignKey('Contract', on_delete=models.CASCADE)
+    event_fk = models.ForeignKey(
+        'Contract',
+        on_delete=models.CASCADE,
+        related_name="contract_event"
+    )
