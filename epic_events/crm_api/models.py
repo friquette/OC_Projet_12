@@ -70,6 +70,9 @@ class Client(DatedItem):
     company_name = models.CharField(max_length=100)
     job = models.CharField(max_length=100)
 
+    def __str__(self):
+        return f'{self.first_name} {self.last_name} - {self.company_name}'
+
 
 class Contract(DatedItem):
     is_signed = models.BooleanField()
@@ -80,6 +83,9 @@ class Contract(DatedItem):
         on_delete=models.CASCADE,
         related_name="client_contract"
     )
+
+    def __str__(self):
+        return f'{self.client_fk.first_name} {self.client_fk.last_name} - {self.payment_due}'
 
 
 class Event(DatedItem):

@@ -5,9 +5,9 @@ from crm_api import views
 
 
 router = DefaultRouter()
-router.register(r'client', views.ClientViewSet)
-router.register(r'contract', views.ContractViewSet)
-router.register(r'event', views.EventViewSet)
+router.register(r'client', views.ClientViewSet, basename='client')
+router.register(r'contract', views.ContractViewSet, basename='contract')
+router.register(r'event', views.EventViewSet, basename='event')
 
 urlpatterns = [
     path('', include(router.urls)),
