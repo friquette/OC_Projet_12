@@ -7,7 +7,7 @@ PHONE_VALIDATOR = RegexValidator(r"^\+?1?\d{8,15}$")
 
 
 class Assignee(models.Model):
-    date = models.DateTimeField(auto_now=True)
+    date = models.DateField(auto_now=True)
     employee = models.ForeignKey(
         Employee,
         on_delete=models.CASCADE,
@@ -41,7 +41,10 @@ class ClientAssignation(Assignee):
         related_name='client_assignation'
     )
     is_converted = models.BooleanField()
-    medium = models.CharField(max_length=100)
+    medium = models.CharField(max_length=100, blank=True)
+
+    def __str__(self):
+        return f'{self.employee.first_name} {self.employee.last_name} - {self.client.company_name}'
 
 
 class DatedItem(models.Model):
@@ -64,7 +67,6 @@ class Client(DatedItem):
     mobile = models.CharField(
         validators=[PHONE_VALIDATOR],
         max_length=16,
-        unique=True,
         blank=True
     )
     company_name = models.CharField(max_length=100)

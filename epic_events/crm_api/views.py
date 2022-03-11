@@ -1,7 +1,8 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
+from rest_framework.permissions import DjangoModelPermissions
 
 from crm_api.models import (
     Client,
@@ -24,15 +25,46 @@ from crm_api.serializers import (
 @api_view(['GET'])
 def api_root(request, format=None):
     return Response({
+        'employee': reverse('employee-list', request=request, format=format),
         'client': reverse('client-list', request=request, format=format)
     })
 
 
 class ClientViewSet(viewsets.ModelViewSet):
     serializer_class = ClientSerializer
+    permission_classes = [DjangoModelPermissions]
+
+    def create(self, request):
+        serializer = ClientSerializer(data=request.data)
+        client_assignation = ClientAssignation()
+
+        if serializer.is_valid():
+            serializer.save()
+
+            client = Client.objects.get(id=serializer.data['id'])
+            client_assignation.client = client
+            client_assignation.employee = self.request.user
+            client_assignation.is_converted = False
+            client_assignation.save()
+
+            return Response(
+                serializer.data,
+                status=status.HTTP_201_CREATED
+            )
+        else:
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
     def get_queryset(self):
-        queryset = Client.objects.all()
+        user = self.request.user
+        client_assignations = ClientAssignation.objects.filter(
+            employee=user.id
+        )
+        queryset = Client.objects.filter(pk__in=[
+            client_assignation.client.id for client_assignation in client_assignations
+        ])
         firstname = self.request.query_params.get('firstname')
         email = self.request.query_params.get('email')
         if firstname:
