@@ -77,9 +77,15 @@ class ClientViewSet(viewsets.ModelViewSet):
 
 class ContractViewSet(viewsets.ModelViewSet):
     serializer_class = ContractSerializer
+    permission_classes = [DjangoModelPermissions]
 
     def get_queryset(self):
-        queryset = Contract.objects.all()
+        client_assignations = ClientAssignation.object.filter(
+            employee=self.request.user.id
+        )
+        queryset = Contract.objects.filter(client_fk__in=[
+            client.client.id for client in client_assignations
+        ])
         firstname = self.request.query_params.get('firstname')
         email = self.request.query_params.get('email')
         date = self.request.query_params.get('date')
