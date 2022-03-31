@@ -6,6 +6,7 @@ from crm_api import views
 
 router = DefaultRouter()
 router.register(r'client', views.ClientViewSet, basename='client')
+router.register(r'client_assignation', views.ClientAssignationViewSet, basename='client-assignation')
 router.register(r'contract', views.ContractViewSet, basename='contract')
 router.register(r'event', views.EventViewSet, basename='event')
 

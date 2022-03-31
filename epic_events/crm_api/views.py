@@ -62,9 +62,12 @@ class ClientViewSet(viewsets.ModelViewSet):
         client_assignations = ClientAssignation.objects.filter(
             employee=user.id
         )
-        queryset = Client.objects.filter(pk__in=[
-            client_assignation.client.id for client_assignation in client_assignations
-        ])
+        if not user.is_superuser:
+            queryset = Client.objects.filter(pk__in=[
+                client_assignation.client.id for client_assignation in client_assignations
+            ])
+        else:
+            queryset = Client.objects.all()
         firstname = self.request.query_params.get('firstname')
         email = self.request.query_params.get('email')
         if firstname:
