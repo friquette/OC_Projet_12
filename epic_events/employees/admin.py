@@ -15,18 +15,33 @@ from crm_api.models import (
 
 class CustomEmployeeAdmin(UserAdmin):
     add_form = CustomEmployeeCreationForm
-    # form = CustomEmployeeChangeForm
+    form = CustomEmployeeChangeForm
     model = Employee
     list_display = ['email', 'group']
     list_filter = ['email', 'group']
     fieldsets = (
-        ('Employee info', {'fields': ('first_name', 'last_name', 'email', 'password')}),
-        ('Permissions', {'fields': ('groups', 'user_permissions', 'group', 'is_staff', 'is_active',)})
+        ('Employee info', {
+            'fields': ('first_name', 'last_name', 'email', 'password')
+        }),
+        ('Permissions', {'fields': (
+            'groups',
+            'user_permissions',
+            'group',
+            'is_staff',
+            'is_active',
+        )})
     )
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'password1', 'password2', 'group', 'is_staff', 'is_active')
+            'fields': (
+                'email',
+                'password1',
+                'password2',
+                'group',
+                'is_staff',
+                'is_active'
+            )
         }),
     )
     search_fields = ('email',)
