@@ -56,7 +56,3 @@ class Employee(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
-
-    # def save(self, *args, **kwargs):
-    #     super(Employee, self).save(*args, **kwargs)
-    #     return self

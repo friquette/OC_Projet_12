@@ -3,6 +3,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.permissions import DjangoModelPermissions
+from django.db.models import Q
 
 from crm_api.models import (
     Client,
@@ -14,6 +15,7 @@ from crm_api.models import (
 )
 from crm_api.serializers import (
     ClientSerializer,
+    CustomClientSerializer,
     ContractSerializer,
     EventSerializer,
     ClientAssignationSerializer,
@@ -31,21 +33,62 @@ def api_root(request, format=None):
 
 
 class ClientViewSet(viewsets.ModelViewSet):
-    serializer_class = ClientSerializer
+    permission_classes = [DjangoModelPermissions]
+
+    def get_serializer_class(self):
+        if self.request.method == "POST":
+            serializer_class = CustomClientSerializer
+        else:
+            serializer_class = ClientSerializer
+        return serializer_class
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = Client.objects.all()
+
+        if not user.is_superuser:
+            if 'Sales' in user.groups():
+                client_assignations = ClientAssignation.objects.filter(
+                    employee=user.id
+                )
+                queryset = Client.objects.filter(pk__in=[
+                    assignation.client.id for assignation in client_assignations
+                ])
+            elif 'Support' in user.groups():
+                event_assignations = EventAssignation.objects.filter(
+                    employee=user.id
+                )
+                events = Event.objects.filter(pk__in=[
+                    assignation.event.id for assignation in event_assignations
+                ])
+                queryset = Client.objects.filter(pk__in=[
+                    event.contract_id.client_id for event in events
+                ])
+
+        search = self.request.query_params.get('search')
+        if search:
+            queryset = queryset.filter(
+                Q(first_name__icontains=search) | Q(email__icontains=search)
+            )
+
+        return queryset
+
+
+class ContractViewSet(viewsets.ModelViewSet):
+    serializer_class = ContractSerializer
     permission_classes = [DjangoModelPermissions]
 
     def create(self, request):
-        serializer = ClientSerializer(data=request.data)
-        client_assignation = ClientAssignation()
+        serializer = ContractSerializer(data=request.data)
+        contract_assignation = ContractAssignation()
 
         if serializer.is_valid():
             serializer.save()
 
-            client = Client.objects.get(id=serializer.data['id'])
-            client_assignation.client = client
-            client_assignation.employee = self.request.user
-            client_assignation.is_converted = False
-            client_assignation.save()
+            contract = Contract.objects.get(id=serializer.data['id'])
+            contract_assignation.client = contract
+            contract_assignation.employee = self.request.user
+            contract_assignation.save()
 
             return Response(
                 serializer.data,
@@ -59,73 +102,74 @@ class ClientViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        client_assignations = ClientAssignation.objects.filter(
-            employee=user.id
-        )
+        queryset = Client.objects.all()
+
         if not user.is_superuser:
-            queryset = Client.objects.filter(pk__in=[
-                client_assignation.client.id for client_assignation in client_assignations
-            ])
-        else:
-            queryset = Client.objects.all()
-        firstname = self.request.query_params.get('firstname')
-        email = self.request.query_params.get('email')
-        if firstname:
-            queryset = queryset.filter(first_name__icontains=firstname)
-        if email:
-            queryset = queryset.filter(email__icontains=email)
-
-        return queryset
-
-
-class ContractViewSet(viewsets.ModelViewSet):
-    serializer_class = ContractSerializer
-    permission_classes = [DjangoModelPermissions]
-
-    def get_queryset(self):
-        client_assignations = ClientAssignation.object.filter(
-            employee=self.request.user.id
-        )
-        queryset = Contract.objects.filter(client_fk__in=[
-            client.client.id for client in client_assignations
-        ])
-        firstname = self.request.query_params.get('firstname')
-        email = self.request.query_params.get('email')
-        date = self.request.query_params.get('date')
-        amount = self.request.query_params.get('amount')
-        if firstname:
-            queryset = queryset.filter(
-                client_fk__first_name__icontains=firstname
+            client_assignations = ClientAssignation.objects.filter(
+                employee=self.request.user.id
             )
-        if email:
-            queryset = queryset.filter(client_fk__email__icontains=email)
-        if date:
-            queryset = queryset.filter(date_created__icontains=date)
-        if amount:
-            queryset = queryset.filter(amount__icontains=amount)
+            queryset = Contract.objects.filter(pk__in=[
+                assignation.client.id for assignation in client_assignations
+            ])
+
+        search = self.request.query_params.get('search')
+        if search:
+            queryset = queryset.filter(
+                Q(client_id__first_name__icontains=search) |
+                Q(client_id__email__icontains=search) |
+                Q(date_created__icontains=search) |
+                Q(amount__icontains=search)
+            )
 
         return queryset
 
 
 class EventViewSet(viewsets.ModelViewSet):
     serializer_class = EventSerializer
+    permission_classes = [DjangoModelPermissions]
+
+    def create(self, request):
+        serializer = EventSerializer(data=request.data)
+        event_assignation = EventAssignation()
+
+        if serializer.is_valid():
+            serializer.save()
+
+            event = Event.objects.get(id=serializer.data['id'])
+            event_assignation.event = event
+            event_assignation.employee = self.request.user
+            event_assignation.save()
+
+            return Response(
+                serializer.data,
+                status=status.HTTP_201_CREATED
+            )
+        else:
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
     def get_queryset(self):
+        user = self.request.user
         queryset = Event.objects.all()
-        firstname = self.request.query_params.get('firstname')
-        email = self.request.query_params.get('email')
-        date = self.request.query_params.get('date')
 
-        if firstname:
-            queryset = queryset.filter(
-                event_fk__client_fk__first_name__icontains=firstname
+        if not user.is_superuser:
+            event_assignations = EventAssignation.objects.filter(
+                employee=self.request.user.id
             )
-        if email:
+            queryset = Event.objects.filter(pk__in=[
+                assignation.client.id for assignation in event_assignations
+            ])
+
+        search = self.request.query_params.get('search')
+
+        if search:
             queryset = queryset.filter(
-                event_fk__client_fk__email__icontains=email
+                Q(event_id__client_id__first_name__icontains=search) |
+                Q(event_id__client_id__email__icontains=search) |
+                Q(event_date__icontains=search)
             )
-        if date:
-            queryset = queryset.filter(event_date__icontains=date)
 
         return queryset
 

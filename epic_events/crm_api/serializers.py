@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.fields import CurrentUserDefault
 from crm_api.models import (
     Client,
     Event,
@@ -7,6 +8,57 @@ from crm_api.models import (
     ContractAssignation,
     EventAssignation
 )
+
+
+class ClientAssignationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClientAssignation
+        fields = [
+            'id',
+            'date',
+            'client',
+            'employee',
+            'is_converted',
+            'medium'
+        ]
+
+
+class CustomClientAssignationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClientAssignation
+        fields = [
+            'id',
+            'date',
+            'is_converted',
+            'medium'
+        ]
+
+
+class CustomClientSerializer(serializers.ModelSerializer):
+    assignation = CustomClientAssignationSerializer()
+
+    class Meta:
+        model = Client
+        fields = [
+            'id',
+            'first_name',
+            'last_name',
+            'email',
+            'phone',
+            'mobile',
+            'company_name',
+            'job',
+            'date_created',
+            'date_updated',
+            'assignation'
+        ]
+
+    def create(self, validated_data):
+        user = self.context.get("request").user
+        client_data = validated_data.pop('assignation')
+        client = Client.objects.create(**validated_data)
+        ClientAssignation.objects.create(client=client, employee=user, **client_data)
+        return client
 
 
 class ClientSerializer(serializers.ModelSerializer):
@@ -22,7 +74,7 @@ class ClientSerializer(serializers.ModelSerializer):
             'company_name',
             'job',
             'date_created',
-            'date_updated'
+            'date_updated',
         ]
 
 
@@ -53,18 +105,6 @@ class EventSerializer(serializers.ModelSerializer):
             'date_updated'
         ]
 
-
-class ClientAssignationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ClientAssignation
-        fields = [
-            'id',
-            'date',
-            'employee',
-            'client',
-            'is_converted',
-            'medium'
-        ]
 
 
 class ContractAssignationSerializer(serializers.ModelSerializer):

@@ -80,7 +80,7 @@ class Contract(DatedItem):
     is_signed = models.BooleanField()
     amount = models.FloatField()
     payment_due = models.DateTimeField()
-    client_fk = models.ForeignKey(
+    client_id = models.ForeignKey(
         'Client',
         on_delete=models.CASCADE,
         related_name="client_contract"
@@ -94,7 +94,7 @@ class Event(DatedItem):
     attendees = models.IntegerField()
     event_date = models.DateTimeField()
     notes = models.TextField()
-    event_fk = models.ForeignKey(
+    contract_id = models.ForeignKey(
         'Contract',
         on_delete=models.CASCADE,
         related_name="contract_event"
