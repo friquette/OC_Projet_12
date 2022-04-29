@@ -73,8 +73,11 @@ class ClientViewSet(viewsets.ModelViewSet):
                 events = Event.objects.filter(pk__in=[
                     assignation.event.id for assignation in event_assignations
                 ])
+                contracts = Contract.objects.filter(
+                    pk__in=[event.contract.id for event in events]
+                )
                 queryset = Client.objects.filter(pk__in=[
-                    event.contract_id for event in events
+                    contract.client.id for contract in contracts
                 ])
 
         search = self.request.query_params.get('search')

@@ -9,4 +9,5 @@ router.register(r'employee', views.EmployeeViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('login', views.authenticate_user)
 ]
