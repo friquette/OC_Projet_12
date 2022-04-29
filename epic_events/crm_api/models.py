@@ -25,6 +25,9 @@ class EventAssignation(Assignee):
         related_name='event_assignation'
     )
 
+    def __str__(self):
+        return f'{self.employee.first_name} {self.employee.last_name} - {self.event.contract.client.company_name} - {self.date}'  # noqa
+
 
 class ContractAssignation(Assignee):
     contract = models.ForeignKey(
@@ -32,6 +35,9 @@ class ContractAssignation(Assignee):
         on_delete=models.CASCADE,
         related_name='contract_assignation'
     )
+
+    def __str__(self):
+        return f'{self.employee.first_name} {self.employee.last_name} - {self.contract.client.company_name} - {self.date}'  # noqa
 
 
 class ClientAssignation(Assignee):
@@ -44,7 +50,7 @@ class ClientAssignation(Assignee):
     medium = models.CharField(max_length=100, blank=True)
 
     def __str__(self):
-        return f'{self.employee.first_name} {self.employee.last_name} - {self.client.company_name}'
+        return f'{self.employee.first_name} {self.employee.last_name} - {self.client.company_name}'  # noqa
 
 
 class DatedItem(models.Model):
@@ -80,22 +86,25 @@ class Contract(DatedItem):
     is_signed = models.BooleanField()
     amount = models.FloatField()
     payment_due = models.DateTimeField()
-    client_id = models.ForeignKey(
+    client = models.ForeignKey(
         'Client',
         on_delete=models.CASCADE,
         related_name="client_contract"
     )
 
     def __str__(self):
-        return f'{self.client_fk.first_name} {self.client_fk.last_name} - {self.payment_due}'
+        return f'{self.client.company_name} - {self.payment_due}'
 
 
 class Event(DatedItem):
     attendees = models.IntegerField()
     event_date = models.DateTimeField()
     notes = models.TextField()
-    contract_id = models.ForeignKey(
+    contract = models.ForeignKey(
         'Contract',
         on_delete=models.CASCADE,
         related_name="contract_event"
     )
+
+    def __str__(self):
+        return f'{self.contract.client.company_name} - {self.event_date}'
