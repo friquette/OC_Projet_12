@@ -54,8 +54,8 @@ class ClientAssignation(Assignee):
 
 
 class DatedItem(models.Model):
-    date_created = models.DateTimeField(auto_now_add=True)
-    date_updated = models.DateTimeField(auto_now=True)
+    date_created = models.DateField(auto_now_add=True)
+    date_updated = models.DateField(auto_now=True)
 
     class Meta:
         abstract = True
@@ -85,7 +85,7 @@ class Client(DatedItem):
 class Contract(DatedItem):
     is_signed = models.BooleanField()
     amount = models.FloatField()
-    payment_due = models.DateTimeField()
+    payment_due = models.DateField()
     client = models.ForeignKey(
         'Client',
         on_delete=models.CASCADE,
@@ -98,7 +98,7 @@ class Contract(DatedItem):
 
 class Event(DatedItem):
     attendees = models.IntegerField()
-    event_date = models.DateTimeField()
+    event_date = models.DateField()
     notes = models.TextField()
     contract = models.ForeignKey(
         'Contract',
