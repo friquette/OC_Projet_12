@@ -52,7 +52,10 @@ class ClientViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         instance_serializer = ClientSerializer(request.data)
-        return Response(instance_serializer.data)
+        return Response(
+            instance_serializer.data,
+            status=status.HTTP_201_CREATED
+        )
 
     def get_queryset(self):
         user = self.request.user
@@ -159,7 +162,10 @@ class EventViewSet(viewsets.ModelViewSet):
         self.perform_create(serializer)
         instance_serializer = EventSerializer(data=request.data)
         instance_serializer.is_valid(raise_exception=True)
-        return Response(instance_serializer.data)
+        return Response(
+            instance_serializer.data,
+            status=status.HTTP_201_CREATED
+        )
 
     def get_queryset(self):
         user = self.request.user
